@@ -1,0 +1,12 @@
+Private/OpenAPIBaseModel.cpp
+Private/OpenAPIBaseModel.h
+Private/OpenAPIHelpers.cpp
+Private/OpenAPIHelpers.h
+Private/OpenAPIQosDiscoveryApi.cpp
+Private/OpenAPIQosDiscoveryApi.h
+Private/OpenAPIQosDiscoveryApiOperations.cpp
+Private/OpenAPIQosDiscoveryApiOperations.h
+Private/OpenAPIQosServer.cpp
+Private/OpenAPIQosServer.h
+Private/OpenAPIQosServers.cpp
+Private/OpenAPIQosServers.h

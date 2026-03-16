@@ -1,0 +1,44 @@
+{
+	"FileVersion": 3,
+	"Version": 6,
+	"VersionName": "0.0.1",
+	"FriendlyName": "Rocket Science Multiplay SDK for Unreal Engine",
+	"Description": "",
+	"Category": "Online Platform",
+	"CreatedBy": "Rocket Science Group",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "RocketScienceMultiplaySDK",
+			"Type": "ServerOnly",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Linux",
+				"Win64"
+			]
+		},
+		{
+			"Name": "RocketScienceQos",
+			"Type": "ClientOnly",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Linux",
+				"Mac",
+				"PS4",
+				"PS5",
+				"Switch",
+				"Win64",
+				"XboxOneGDK",
+				"XSX",
+				"Switch2"
+			]
+		}
+	]
+}
