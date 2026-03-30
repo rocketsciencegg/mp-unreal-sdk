@@ -8,12 +8,7 @@
 #include "MultiplayGameServerSDK/MultiplayServerEvents.h"
 
 #if WITH_AUTOMATION_TESTS
-
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
-BEGIN_DEFINE_SPEC(FRSMultiplayServerEventsSpec, "MultiplayGameServerSDK.ServerEvents", EAutomationTestFlags::ProductFilter | EAutomationTestFlags_ApplicationContextMask)
-#else
-BEGIN_DEFINE_SPEC(FMultiplayServerEventsSpec, "MultiplayGameServerSDK.ServerEvents", EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
-#endif
+BEGIN_DEFINE_SPEC(FRSMultiplayServerEventsSpec, "MultiplayGameServerSDK.ServerEvents", EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
 END_DEFINE_SPEC(FRSMultiplayServerEventsSpec)
 
 void FRSMultiplayServerEventsSpec::Define()

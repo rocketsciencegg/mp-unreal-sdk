@@ -10,12 +10,7 @@
 #include "RSMultiplayGameServerSubsystem.h"
 
 #if WITH_AUTOMATION_TESTS
-
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5
-BEGIN_DEFINE_SPEC(FRSMultiplayGameServerSubsystemSpec, "MultiplayGameServerSDK.URSMultiplayGameServerSubsystem", EAutomationTestFlags::ProductFilter | EAutomationTestFlags_ApplicationContextMask)
-#else
-BEGIN_DEFINE_SPEC(FMultiplayGameServerSubsystemSpec, "MultiplayGameServerSDK.URSMultiplayGameServerSubsystem", EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
-#endif
+BEGIN_DEFINE_SPEC(FRSMultiplayGameServerSubsystemSpec, "MultiplayGameServerSDK.URSMultiplayGameServerSubsystem", EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
 URSMultiplayGameServerSubsystem* GameServerSubsystem;
 END_DEFINE_SPEC(FRSMultiplayGameServerSubsystemSpec)
 
