@@ -9,6 +9,7 @@
 #include "CoreMinimal.h"
 #include "Dom/JsonObject.h"
 #include "MultiplayCentrifugeForwardDeclarations.h"
+#include "MultiplayCentrifugeMessages.h"
 
 class IWebSocket;
 
@@ -134,6 +135,7 @@ namespace RocketScienceMultiplaySDK
 		void OnClosed(int32 StatusCode, const FString& Reason, bool bWasClean);
 		void OnMessage(const FString& MessageString);
 		void OnMessageSent(const FString& MessageString);
+		FConnectRequest PendingConnectRequest;
 
 	private:
 		void ChangeConnectionStatus(EConnectionStatus NewStatus);

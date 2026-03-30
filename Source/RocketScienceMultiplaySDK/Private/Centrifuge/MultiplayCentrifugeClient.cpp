@@ -15,7 +15,22 @@ namespace RocketScienceMultiplaySDK
 {
 	FCentrifugeClient::FCentrifugeClient(FString Url) : Url(Url), Id(kInitialMsgId), Status(EConnectionStatus::Disconnected)
 	{
-		WebSocket = FWebSocketsModule::Get().CreateWebSocket(Url, TEXT("ws"));
+		//Log the exact URL
+		UE_LOG(LogRSCentrifuge, Warning, TEXT("Attempting to connect to URL: %s"), *Url);
+
+		//Force Unity-style HTTP URLs into strict Unreal WebSocket URLs
+		if (Url.StartsWith(TEXT("http://")))
+		{
+			Url = Url.Replace(TEXT("http://"), TEXT("ws://"));
+		}
+		else if (Url.StartsWith(TEXT("https://")))
+		{
+			Url = Url.Replace(TEXT("https://"), TEXT("wss://"));
+		}
+
+		//Ensure the module is loaded and use the strict centrifuge protocol
+		FModuleManager::Get().LoadModuleChecked("WebSockets");
+		WebSocket = FWebSocketsModule::Get().CreateWebSocket(Url, TEXT("centrifuge-json"));
 
 		WebSocket->OnConnected().AddRaw(this, &FCentrifugeClient::OnConnected);
 		WebSocket->OnConnectionError().AddRaw(this, &FCentrifugeClient::OnConnectionError);
@@ -57,6 +72,8 @@ namespace RocketScienceMultiplaySDK
 		}
 		else
 		{
+			PendingConnectRequest = Request; 
+
 			ChangeConnectionStatus(EConnectionStatus::Connecting);
 
 			WebSocket->Connect();
@@ -146,9 +163,8 @@ namespace RocketScienceMultiplaySDK
 
 		UE_LOG(LogRSCentrifuge, Log, TEXT("OnConnected()"));
 
-		// TODO: Use argument from FCentrifugeClient::Connect() for FConnectRequest.
-		FConnectRequest Request;
-		SendRequest<FConnectRequest>(Request);
+		// Send the stored request
+		SendRequest<FConnectRequest>(PendingConnectRequest);
 	}
 
 	void FCentrifugeClient::OnConnectionError(const FString& Error)
