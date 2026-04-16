@@ -3,9 +3,14 @@ mp-unreal-sdk
 
 ## Prerequisites
 
-* Source Build of Unreal Engine (recommended version 4.26.2)
-* Windows 10 / 11 or Ubuntu / Debian operating system
-* Visual Studio 2017 or later
+* Unreal Engine: Source Build (Minimum version 4.26.2)
+* Operating System: Windows 10 / 11 or Ubuntu / Debian
+* IDE: Visual Studio 2019 or 2022 (Recommended for UE 5.x)
+* Linux Toolchain: v20_clang-13.0.1-centos7 (Required for cross-compiling UE 5.1 targets)
+
+## Supported/Tested Versions
+* Minimum Version: Unreal Engine 4.26.2
+* Latest Verified Version: Unreal Engine 5.1.1
 
 
 Required modules are listed in the appendix.
