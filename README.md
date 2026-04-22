@@ -13,23 +13,9 @@ Required Visual Studio modules are listed in the [Appendix](#appendix).
 
 Install the plugin by adding it to your project's `Plugins/` directory.
 
-The SDK is distributed as source rather than as a prebuilt binary. The reasons
-are:
+Install the plugin by copying this repo into to your project's Plugins/ directory. The SDK is distributed as source; compile it against your engine version as usual.
 
-1. **Unreal's ABI changes between engine versions.** A binary plugin built
-   against one UE version will not reliably link against another, even a
-   point release apart. The plugin must be compiled against the exact engine
-   version your project uses, so the source has to ship to do that.
-2. **Unreal Build Tool recompiles all plugins when you package a dedicated
-   server.** UBT drives the dedicated-server build by walking every enabled
-   plugin's `*.Build.cs`, generating module targets, and compiling them from
-   source into the server binary. There is no stage in that pipeline where a
-   prebuilt plugin binary can be slotted in.
-3. **Teams need to modify plugins.** Adding logging, changing default
-   behaviour, patching a bug against a specific engine version, or wiring the
-   plugin into other systems all require editing source. Source distribution
-   makes that the path of least resistance, rather than a fork-and-rebuild
-   exercise.
+Reference [Unreal's Plugin documentation](https://dev.epicgames.com/documentation/unreal-engine/plugins-in-unreal-engine) for more information
 
 ### Plugin folder naming
 
@@ -40,7 +26,7 @@ The folder name must match the `.uplugin` file basename. Unreal resolves
 plugins by matching the folder name to `<FolderName>.uplugin`, so this
 repository's `RocketScienceMultiplaySDK.uplugin` must live inside a folder
 called `RocketScienceMultiplaySDK`. Using any other folder name causes the
-plugin to be silently ignored — no error, just no plugin.
+plugin to be silently ignored.
 
 ```
 YourProject/
@@ -104,15 +90,8 @@ Use this subsystem to:
   Hosting's allocation system can place a game session on it.
 * Subscribe to allocation and deallocation events fired by the matchmaker or
   the Multiplay Hosting API.
-* Retrieve the allocation payload — an opaque string (up to 30 KB) that a
-  matchmaker attaches to an allocation request to configure the session on a
-  per-match basis. The platform treats the payload as arbitrary UTF-8 text and
-  does not enforce a format, but **JSON is the recommended convention**:
-    * JSON comfortably fits inside the 30 KB size cap for typical match
-      configuration (mode, map rotation, player slots, mod flags, etc.).
-  The Unreal SDK delivers the payload to you as an `FString` — parse it with
-  `FJsonSerializer::Deserialize` if you adopt the JSON convention, or handle
-  your chosen format directly.
+* Retrieve the allocation payload — an opaque UTF-8 string (up to 30 KB) attached by the matchmaker to configure the session. The SDK delivers it as an FString. The platform doesn't enforce a format, but JSON is the recommended convention: it's compact enough for typical match
+ │ configuration (mode, map, player slots, etc.) and parses trivially with FJsonSerializer::Deserialize.
 
 | Member | Description |
 | ----------- | ----------- |
@@ -126,25 +105,12 @@ Use this subsystem to:
 
 Example:
 
-```cpp
-auto* GameServer = GetGameInstance()->GetSubsystem<URSMultiplayGameServerSubsystem>();
-GameServer->OnAllocate.AddDynamic(this, &AMyServer::HandleAllocated);
-GameServer->OnDeallocate.AddDynamic(this, &AMyServer::HandleDeallocated);
-GameServer->SubscribeToServerEvents();
-
-FRSReadyServerSuccessDelegate OnSuccess;
-OnSuccess.BindDynamic(this, &AMyServer::HandleReadySuccess);
-FRSReadyServerFailureDelegate OnFailure;
-OnFailure.BindDynamic(this, &AMyServer::HandleReadyFailure);
-GameServer->ReadyServerForPlayers(OnSuccess, OnFailure);
-```
 
 ### Server Config subsystem
 
 `URSMultiplayServerConfigSubsystem` exposes the contents of the `server.json`
 file that Multiplay Hosting generates and maintains for every game server
-instance. It is the Unreal equivalent of reading the file directly, without the
-need to poll or watch the file system.
+instance.
 
 The config is populated from the build configuration's configuration variables
 plus built-in variables such as the allocation ID, ports, fleet ID, and region.
