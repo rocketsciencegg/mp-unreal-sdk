@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.1.6] - 2026-12-22
+* Updated to support Multiplay By Rocket Science.
+
 ## [1.1.5] - 2024-12-18
 * Fixed Compatibility with Unreal Engine 5.5.0
 
