@@ -698,11 +698,6 @@ the query handler lost the port — most commonly due to the collision
 scenario described in the
 [binding port warning](#binding-port-and-command-line-overrides).
 
-## Testbed project
-
-A sample testbed project demonstrating QoS and direct connect flows is
-documented separately. See [TESTBED.md](TESTBED.md).
-
 ## Appendix
 
 ### Required Visual Studio modules for Unreal Engine
