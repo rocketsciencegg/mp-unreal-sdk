@@ -5,7 +5,7 @@
 * Unreal Engine: minimum version 4.26.2. Verified against UE 4.26.2 through UE 5.5.x — see [CHANGELOG.md](CHANGELOG.md) for explicit compatibility fixes (UE 5.4.0 in v1.1.3, UE 5.5.0 in v1.1.5).
 * Operating System: Windows 10 / 11 or Ubuntu
 * IDE: Visual Studio 2019 or 2022 (recommended for UE 5.x)
-* Linux Toolchain: `v20_clang-13.0.1-centos7` (required for cross-compiling UE 5.1 targets)
+* Linux Toolchain: `v20_clang-13.0.1-centos7` (required for cross-compiling UE 5.1 targets) — see [Epic's cross-compile toolchain reference](https://dev.epicgames.com/documentation/unreal-engine/linux-development-requirements-for-unreal-engine#cross-compile-toolchain)
 
 Required Visual Studio modules are listed in the [Appendix](#appendix).
 
@@ -86,10 +86,10 @@ machine, reporting server readiness and receiving allocation lifecycle events.
 
 Use this subsystem to:
 
-* Mark the server ready or unready for players, which controls whether Multiplay
-  Hosting's allocation system can place a game session on it.
+* Mark the server ready or unready for players, which controls whether
+  Multiplay's allocation system can place a game session on it.
 * Subscribe to allocation and deallocation events fired by the matchmaker or
-  the Multiplay Hosting API.
+  the Multiplay API.
 * Retrieve the allocation payload — an opaque UTF-8 string (up to 30 KB) attached by the matchmaker to configure the session. The SDK delivers it as an FString. The platform doesn't enforce a format, but JSON is the recommended convention: it's compact enough for typical match
  │ configuration (mode, map, player slots, etc.) and parses trivially with FJsonSerializer::Deserialize.
 
@@ -109,13 +109,26 @@ Example:
 ### Server Config subsystem
 
 `URSMultiplayServerConfigSubsystem` exposes the contents of the `server.json`
-file that Multiplay Hosting generates and maintains for every game server
+file that Multiplay's Allocator generates and maintains for every game server
 instance.
 
-The config is populated from the build configuration's configuration variables
-plus built-in variables such as the allocation ID, ports, fleet ID, and region.
-Values may change during a server's lifetime — most notably `AllocationId`,
-which is set when the server is allocated and cleared when it is deallocated.
+The built-in fields surfaced on `FRSMultiplayServerConfig` are written into
+`server.json` at server start: `ServerId`, `Ip`, `Port`, `QueryPort`, and
+`ServerLogDirectory`. These are **immutable for the lifetime of the server
+process** — the Allocator assigns them once at start and never changes them.
+
+`AllocationId` is the exception on disk. A single server process can stay up
+across multiple allocations: Multiplay's Allocator writes `AllocationId` into
+`server.json` when the server is allocated and clears it on deallocation, so
+the on-disk value cycles over the server's lifetime.
+
+**The subsystem does not track that cycle.** It reads `server.json` once in
+`Initialize()` and caches the result, so `FRSMultiplayServerConfig.AllocationId`
+reflects only what was on disk at subsystem startup (typically empty, since the
+server usually initializes before its first allocation). For live allocation
+state, subscribe to `OnAllocate` / `OnDeallocate` on
+`URSMultiplayGameServerSubsystem` — those fire on each allocation/deallocation
+and carry the current `AllocationId`.
 
 | Member | Description |
 | ----------- | ----------- |
@@ -130,26 +143,106 @@ which is set when the server is allocated and cleared when it is deallocated.
 | `Ip` | `FString` | IP address the server is bound to. |
 | `Port` | `int32` | Game port for player traffic. |
 | `QueryPort` | `int32` | Port the server query protocol (SQP) listens on. |
-| `ServerLogDirectory` | `FString` | Directory Multiplay Hosting expects server logs to be written to, so they are exposed via the Dashboard. |
+| `ServerLogDirectory` | `FString` | Directory Multiplay expects server logs to be written to, so they are exposed via the Dashboard. |
 
 ### Extending server.json with custom configuration variables
 
 The fields above are the built-in subset that `FRSMultiplayServerConfig`
-surfaces. Multiplay Hosting also lets you define custom configuration variables
-on a build configuration in the Multiplay Dashboard — things like a difficulty
-modifier, game mode, or map selection. These variables are written into the
-same `server.json` file alongside the built-ins at server start and whenever
-they change.
+surfaces. Multiplay's Allocator also lets you define custom configuration
+variables on a build configuration in the Multiplay Dashboard — things like a
+difficulty modifier, game mode, or map selection. These variables are written
+into the same `server.json` file alongside the built-ins at server start, and
+may be re-pushed mid-lifetime — but only as part of an allocation update (the
+same event that writes `allocatedUUID`). Between allocations they do not
+change.
 
-Custom variables are not exposed through `FRSMultiplayServerConfig` directly.
-To read them, open `server.json` from `$HOME/server.json` (Linux) or
-`$HOMEPATH/server.json` (Windows) and parse the additional fields yourself. The
-built-in fields on the struct will continue to reflect the values injected by
-Multiplay Hosting, so the two approaches can be mixed freely.
+**Custom vars are static per build configuration.** Every server started from
+the same build config gets the same key/value pairs. For per-session values
+(map, mode, per-match settings, etc.), use the **allocation
+payload** instead — see [`GetPayloadAllocation`](#game-server-subsystem) on
+`URSMultiplayGameServerSubsystem`, which delivers an opaque matchmaker-supplied
+string at allocate time.
+
+**Setting them up in the Dashboard**
+
+On your build configuration's edit page, add each variable as a key/value
+pair. The key becomes a top-level field in `server.json`; the value is a
+string that may embed `$$...$$` tokens (see the `$$...$$` section below) for
+server-specific substitution. Example KVPs:
+
+| Key | Value |
+| --- | --- |
+| `mode` | `deathmatch` |
+| `map` | `dust2` |
+| `matchDuration` | `600` |
+
+At server start, `server.json` will contain:
+
+```json
+{
+    "serverID": "12345",
+    "allocatedUUID": "",
+    "ip": "1.2.3.4",
+    "port": "1337",
+    "queryPort": "1338",
+    "serverLogDir": "/mnt/unity/logs/",
+    "mode": "deathmatch",
+    "map": "dust2",
+    "matchDuration": "600"
+}
+```
+
+Keys are flat by default, but values
+may contain JSON literals — the SDK only parses the fields it recognizes, so
+something like `"maplist": "[\"dust2\",\"inferno\"]"` round-trips fine if your
+code decodes it.
+
+**Reserved key names**
+
+Avoid keys that collide with the built-in `server.json` fields: `serverID`,
+`allocatedUUID`, `ip`, `port`, `queryPort`, and `serverLogDir`. The Allocator
+owns these and will overwrite any custom value at write time.
+
+**Reading them in Unreal**
+
+The subsystem only caches the built-in fields. For custom vars, open the file
+directly:
+
+```cpp
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Serialization/JsonSerializer.h"
+#include "Serialization/JsonReader.h"
+
+#if PLATFORM_WINDOWS
+    FString HomeDir = FPaths::Combine(
+        FPlatformMisc::GetEnvironmentVariable(TEXT("HOMEDRIVE")),
+        FPlatformMisc::GetEnvironmentVariable(TEXT("HOMEPATH")));
+#else
+    FString HomeDir = FPlatformMisc::GetEnvironmentVariable(TEXT("HOME"));
+#endif
+
+FString Contents;
+if (FFileHelper::LoadFileToString(Contents, *FPaths::Combine(HomeDir, TEXT("server.json"))))
+{
+    TSharedPtr<FJsonObject> Root;
+    auto Reader = TJsonReaderFactory<>::Create(Contents);
+    if (FJsonSerializer::Deserialize(Reader, Root) && Root.IsValid())
+    {
+        FString Mode = Root->GetStringField(TEXT("mode"));
+        FString Map  = Root->GetStringField(TEXT("map"));
+        int32 Duration = FCString::Atoi(*Root->GetStringField(TEXT("matchDuration")));
+    }
+}
+```
+
+Because the subsystem only reads `server.json` once at startup, if you need
+the refreshed custom-variable values for a new allocation, re-read the file
+from your `OnAllocate` handler rather than relying on the cached struct.
 
 ### Configuration variable tokens (`$$...$$`)
 
-Multiplay Hosting uses a `$$name$$` token syntax for substitution variables.
+Multiplay's Allocator uses a `$$name$$` token syntax for substitution variables.
 Tokens like `$$port$$`, `$$query_port$$`, `$$serverid$$`, `$$log_dir$$`, and
 `$$timestamp$$` are replaced with per-server values at server start. The same
 token resolves to the same value wherever it appears — in a launch parameter,
@@ -160,7 +253,7 @@ will always carry the matching integer at runtime.
 For the full list of available variables and their types, see the Multiplay
 customer documentation: [Server variables][server-variables].
 
-[server-variables]: https://open-2v.gitbook.com/multiplay-customer-docs/reference/server-variables
+[server-variables]: https://docs.multiplay.dev/readme/concepts/build-configurations/configuration-variables
 
 Example:
 
@@ -175,7 +268,7 @@ UE_LOG(LogMyGame, Log, TEXT("Serving on %s:%d (server %lld)"),
 ### Server Query Handler subsystem
 
 `URSMultiplayServerQueryHandlerSubsystem` implements the Server Query Protocol
-(SQP) that Multiplay Hosting uses to detect unresponsive servers, drive live
+(SQP) that Multiplay uses to detect unresponsive servers, drive live
 analytics (concurrently connected users, crashes, server events), and surface
 server state on the Dashboard. When `Connect()` is called the subsystem binds
 a UDP socket using the `queryPort` value read from `server.json` (via
@@ -184,7 +277,7 @@ automatically.
 
 Your game code is responsible for keeping the reported state valid and fresh
 — principally `CurrentPlayers`, but also `MaxPlayers`, `ServerName`,
-`GameType`, `BuildId`, `Map`, and `Port`. Multiplay Hosting uses SQP as the
+`GameType`, `BuildId`, `Map`, and `Port`. Multiplay uses SQP as the
 primary **health check** for the game server process: the hosting platform
 polls the SQP endpoint on an interval, and a run of invalid or missing
 responses is treated as "server crashed" — regardless of whether the game
@@ -196,10 +289,10 @@ process is still running. Examples of invalid responses include:
   protocol's size bounds.
 * Not responding at all for a sustained period.
 
-Once Multiplay Hosting concludes the server has crashed, the platform takes
+Once Multiplay concludes the server has crashed, the platform takes
 the standard crash actions (deallocation, restart or recycle, incident
 counters, etc.), which can end the match mid-session. The same SQP stream
-also feeds Multiplay Hosting's monitoring and analytics for the hosting
+also feeds Multiplay's monitoring and analytics for the hosting
 infrastructure as a whole — concurrently connected users, crash rates, map
 distribution, and so on are all derived from the values you report here, so
 accuracy matters.
@@ -242,7 +335,7 @@ A [Steam A2S][a2s] query port is the UDP port that Valve's `A2S_INFO` /
 `A2S_PLAYER` / `A2S_RULES` requests are answered on. SQP serves the same role
 for Multiplay, and A2S is in fact supported as well — declare which protocol
 your build uses in the build configuration's query type on the Multiplay
-Dashboard, and Multiplay Hosting will poll it accordingly.
+Dashboard, and Multiplay will poll it accordingly.
 
 [a2s]: https://developer.valvesoftware.com/wiki/Server_queries
 
@@ -252,14 +345,14 @@ Dashboard, and Multiplay Hosting will poll it accordingly.
 > implementation) is already wired to the default
 > `-queryport=$$query_port$$` command-line argument, it will land on the
 > same UDP port this SDK tries to bind for SQP. `$$query_port$$` is
-> resolved consistently everywhere Multiplay Hosting substitutes it, so the
+> resolved consistently everywhere Multiplay's Allocator substitutes it, so the
 > launch parameter and `server.json`'s `queryPort` field carry the **same
 > integer** at runtime. Two subsystems racing for one UDP bind has two bad
 > outcomes:
 >
 > * The bind itself fails for one of them, with the losing subsystem
 >   silently dropping off. Which one loses depends on initialisation order.
-> * The wrong protocol answers on the port Multiplay Hosting polls, so
+> * The wrong protocol answers on the port Multiplay polls, so
 >   responses do not match the query type declared on the build
 >   configuration. Multiplay's health check treats that as an unresponsive
 >   server, and the standard crash actions (deallocation, restart or
@@ -275,16 +368,16 @@ Dashboard, and Multiplay Hosting will poll it accordingly.
 
 ##### Why this SDK ignores the command line
 
-Unreal's default (`OnlineSubsystemSteam`) reads the query port from
-`FParse::Value` or `Engine.ini`. This SDK deliberately does **not** follow that
-pattern:
+Unreal's default (`OnlineSubsystemSteam`) reads the query port from the
+command line (via `FParse::Value` on `-QueryPort=`) or `Engine.ini`. This SDK
+deliberately does **not** follow that pattern:
 
-1. Multiplay Hosting is the source of truth for port assignment. It generates
+1. Multiplay's Allocator is the source of truth for port assignment. It generates
    a `queryPort` per server instance, writes it to `server.json`, and expects
    the running process to bind that exact port so it can reach it for health
    and analytics polling.
-2. Multiple server instances can share a single machine under Multiplay
-   Hosting. Any static convention — such as `27015`, or a single CLI value per machine — would collide across
+2. Multiple server instances can share a single machine under Multiplay.
+   Any static convention — such as `27015`, or a single CLI value per machine — would collide across
    game servers. `server.json`'s `queryPort:$$query_port$$` is per game server instance and assigned by
    the platform.
 3. Source builds and dedicated-server repackages happen frequently. Hard-wiring
@@ -323,7 +416,7 @@ if (QueryPort == 0)
 ```
 
 Keep the `server.json` value as the primary source so the plugin remains
-aligned with Multiplay Hosting's configuration model. The command-line path is
+aligned with Multiplay's configuration model. The command-line path is
 a fallback for local dev and test scenarios.
 
 ### Complete server bootstrap example
@@ -415,7 +508,7 @@ void UMyGameInstance::Init()
     Query->SetMap(TEXT("arena"));
     Query->Connect();
 
-    // 4. Tell Multiplay Hosting the server is ready to accept allocations.
+    // 4. Tell Multiplay the server is ready to accept allocations.
     //    Only meaningful when the build configuration has readiness enabled;
     //    otherwise this is a no-op on the allocation system.
     FRSReadyServerSuccessDelegate OnSuccess;
@@ -478,7 +571,7 @@ Teardown is the reverse: `Disconnect()` the query handler, then
 
 ## Launch parameters
 
-The recommended launch parameters for Unreal servers on Multiplay Hosting:
+The recommended launch parameters for Unreal servers on Multiplay:
 
 ```
 -log=$$serverid$$/$$log_dir$$/$$serverid$$-$$timestamp$$.log -port=$$port$$
@@ -490,7 +583,7 @@ The recommended launch parameters for Unreal servers on Multiplay Hosting:
 | `-ABSLOG` | Log file path, resolved as an **absolute path**. Use this when you need the log written to a specific location, such as `$$log_dir$$` so it is exposed via the Multiplay Dashboard. |
 | `-port` | Game port the server binds for player traffic. Parsed by Unreal Engine itself (NetDriver `PortOverride`). |
 
-Variables wrapped in `$$...$$` are resolved by Multiplay Hosting at server
+Variables wrapped in `$$...$$` are resolved by Multiplay's Allocator at server
 start. Set the launch parameters on your build configuration in the Multiplay
 Dashboard.
 
@@ -526,7 +619,7 @@ or a build rollout). Use this pattern with either `-log` or `-ABSLOG`:
 -ABSLOG=$$serverid$$/$$log_dir$$/$$serverid$$-$$timestamp$$.log
 ```
 
-Refer to the [Multiplay Hosting documentation on redirecting Unreal logs][unreal-logs]
+Refer to the [Multiplay documentation on redirecting Unreal logs][unreal-logs]
 for more detail.
 
 [unreal-logs]: https://open-2v.gitbook.com/multiplay-customer-docs/debugging/redirect-log-output-for-games-using-unreal
@@ -535,7 +628,7 @@ for more detail.
 
 ### Running the server locally without Multiplay infrastructure
 
-On real Multiplay-hosted machines, Multiplay Hosting writes `server.json` and
+On real Multiplay-hosted machines, Multiplay's Allocator writes `server.json` and
 runs the local SDK daemon (`sdkdaemon`) on port `8086`. Neither exists on a
 developer workstation, so a default SDK run outside Multiplay will fail to
 parse the config and fail to connect its event channel.
