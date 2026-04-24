@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
-	"Version": 6,
-	"VersionName": "0.0.1",
+	"Version": 7,
+	"VersionName": "1.1.6",
 	"FriendlyName": "Rocket Science Multiplay SDK for Unreal Engine",
 	"Description": "",
 	"Category": "Online Platform",
