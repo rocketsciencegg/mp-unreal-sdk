@@ -12,8 +12,12 @@
 #include "Mock/QosApi_AlwaysSucceeds.mock.h"
 
 #if WITH_AUTOMATION_TESTS
-BEGIN_DEFINE_SPEC(FRSQosApiSpec_SuccessTests, "QosSDK.FQosApi.SuccessTests", EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
-TUniquePtr<RocketScienceQos::FQosApi> Api;
+BEGIN_DEFINE_SPEC(FRSQosApiSpec_SuccessTests, "QosSDK.FQosApi.SuccessTests",
+	EAutomationTestFlags::ProductFilter | 
+	EAutomationTestFlags::EditorContext | 
+	EAutomationTestFlags::ClientContext | 
+	EAutomationTestFlags::ServerContext | 
+	EAutomationTestFlags::CommandletContext)
 END_DEFINE_SPEC(FRSQosApiSpec_SuccessTests)
 
 void FRSQosApiSpec_SuccessTests::Define()

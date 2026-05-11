@@ -10,7 +10,12 @@
 #include "Serialization/ArrayReader.h"
 
 #if WITH_AUTOMATION_TESTS
-BEGIN_DEFINE_SPEC(FRSMultiplayServerQueryProtocolSpec, "MultiplayGameServerSDK.ServerQueryProtocol", EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
+BEGIN_DEFINE_SPEC(FRSMultiplayServerQueryProtocolSpec, "MultiplayGameServerSDK.ServerQueryProtocol",
+	EAutomationTestFlags::ProductFilter | 
+	EAutomationTestFlags::EditorContext | 
+	EAutomationTestFlags::ClientContext | 
+	EAutomationTestFlags::ServerContext | 
+	EAutomationTestFlags::CommandletContext)
 END_DEFINE_SPEC(FRSMultiplayServerQueryProtocolSpec)
 
 void FRSMultiplayServerQueryProtocolSpec::Define()
