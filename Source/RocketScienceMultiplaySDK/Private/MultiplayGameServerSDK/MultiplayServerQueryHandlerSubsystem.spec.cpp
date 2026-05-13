@@ -15,6 +15,7 @@ BEGIN_DEFINE_SPEC(FRSMultiplayServerQueryHandlerSubsystemSpec, "MultiplayGameSer
 	EAutomationTestFlags::ClientContext | 
 	EAutomationTestFlags::ServerContext | 
 	EAutomationTestFlags::CommandletContext)
+URSMultiplayServerQueryHandlerSubsystem* ServerQueryHandlerSubsystem;
 END_DEFINE_SPEC(FRSMultiplayServerQueryHandlerSubsystemSpec)
 
 void FRSMultiplayServerQueryHandlerSubsystemSpec::Define()

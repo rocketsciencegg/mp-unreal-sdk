@@ -18,6 +18,7 @@ BEGIN_DEFINE_SPEC(FRSQosApiSpec_OperationalTests, "QosSDK.FQosApi.OperationalTes
  EAutomationTestFlags::ClientContext | 
  EAutomationTestFlags::ServerContext | 
  EAutomationTestFlags::CommandletContext)
+TUniquePtr<RocketScienceQos::FQosApi> Api;
 END_DEFINE_SPEC(FRSQosApiSpec_OperationalTests)
 
 void FRSQosApiSpec_OperationalTests::Define()

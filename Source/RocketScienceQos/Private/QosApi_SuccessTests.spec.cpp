@@ -18,6 +18,7 @@ BEGIN_DEFINE_SPEC(FRSQosApiSpec_SuccessTests, "QosSDK.FQosApi.SuccessTests",
 	EAutomationTestFlags::ClientContext | 
 	EAutomationTestFlags::ServerContext | 
 	EAutomationTestFlags::CommandletContext)
+TUniquePtr<RocketScienceQos::FQosApi> Api;
 END_DEFINE_SPEC(FRSQosApiSpec_SuccessTests)
 
 void FRSQosApiSpec_SuccessTests::Define()
