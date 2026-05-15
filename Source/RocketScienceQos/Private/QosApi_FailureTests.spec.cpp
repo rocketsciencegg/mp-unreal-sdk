@@ -12,7 +12,12 @@
 #include "Mock/QosApi_AlwaysFails.mock.h"
 
 #if WITH_AUTOMATION_TESTS
-BEGIN_DEFINE_SPEC(FRSQosApiSpec_FailureTests, "QosSDK.FQosApi.FailureTests", EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
+BEGIN_DEFINE_SPEC(FRSQosApiSpec_FailureTests, "QosSDK.FQosApi.FailureTests",
+	EAutomationTestFlags::ProductFilter | 
+	EAutomationTestFlags::EditorContext | 
+	EAutomationTestFlags::ClientContext | 
+	EAutomationTestFlags::ServerContext | 
+	EAutomationTestFlags::CommandletContext)
 TUniquePtr<RocketScienceQos::FQosApi> Api;
 END_DEFINE_SPEC(FRSQosApiSpec_FailureTests)
 

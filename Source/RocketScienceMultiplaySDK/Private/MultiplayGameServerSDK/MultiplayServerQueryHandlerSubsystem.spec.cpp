@@ -9,7 +9,12 @@
 #include "RSMultiplayServerQueryHandlerSubsystem.h"
 
 #if WITH_AUTOMATION_TESTS
-BEGIN_DEFINE_SPEC(FRSMultiplayServerQueryHandlerSubsystemSpec, "MultiplayGameServerSDK.URSMultiplayServerQueryHandlerSubsystem", EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
+BEGIN_DEFINE_SPEC(FRSMultiplayServerQueryHandlerSubsystemSpec, "MultiplayGameServerSDK.URSMultiplayServerQueryHandlerSubsystem",
+	EAutomationTestFlags::ProductFilter | 
+	EAutomationTestFlags::EditorContext | 
+	EAutomationTestFlags::ClientContext | 
+	EAutomationTestFlags::ServerContext | 
+	EAutomationTestFlags::CommandletContext)
 URSMultiplayServerQueryHandlerSubsystem* ServerQueryHandlerSubsystem;
 END_DEFINE_SPEC(FRSMultiplayServerQueryHandlerSubsystemSpec)
 

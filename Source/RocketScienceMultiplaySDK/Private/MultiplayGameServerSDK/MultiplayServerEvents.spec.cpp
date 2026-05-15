@@ -8,7 +8,12 @@
 #include "MultiplayGameServerSDK/MultiplayServerEvents.h"
 
 #if WITH_AUTOMATION_TESTS
-BEGIN_DEFINE_SPEC(FRSMultiplayServerEventsSpec, "MultiplayGameServerSDK.ServerEvents", EAutomationTestFlags::ProductFilter | EAutomationTestFlags::ApplicationContextMask)
+BEGIN_DEFINE_SPEC(FRSMultiplayServerEventsSpec, "MultiplayGameServerSDK.ServerEvents",
+	EAutomationTestFlags::ProductFilter | 
+	EAutomationTestFlags::EditorContext | 
+	EAutomationTestFlags::ClientContext | 
+	EAutomationTestFlags::ServerContext | 
+	EAutomationTestFlags::CommandletContext)
 END_DEFINE_SPEC(FRSMultiplayServerEventsSpec)
 
 void FRSMultiplayServerEventsSpec::Define()
