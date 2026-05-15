@@ -8,7 +8,7 @@
 #include "MultiplayGameServerSDK/MultiplayServerJson.h"
 
 #if WITH_AUTOMATION_TESTS
-BEGIN_DEFINE_SPEC(FRSMultiplayServerJsonSpec, "MultiplayGameServerSDK.FMultiplayServerJson", 	
+BEGIN_DEFINE_SPEC(FRSMultiplayServerJsonSpec, "MultiplayGameServerSDK.FMultiplayServerJson",
 	EAutomationTestFlags::ProductFilter | 
 	EAutomationTestFlags::EditorContext | 
 	EAutomationTestFlags::ClientContext | 

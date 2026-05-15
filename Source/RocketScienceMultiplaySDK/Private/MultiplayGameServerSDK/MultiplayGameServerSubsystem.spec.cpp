@@ -11,7 +11,7 @@
 
 #if WITH_AUTOMATION_TESTS
 BEGIN_DEFINE_SPEC(FRSMultiplayGameServerSubsystemSpec, "MultiplayGameServerSDK.URSMultiplayGameServerSubsystem",
-EAutomationTestFlags::ProductFilter | 
+	EAutomationTestFlags::ProductFilter | 
 	EAutomationTestFlags::EditorContext | 
 	EAutomationTestFlags::ClientContext | 
 	EAutomationTestFlags::ServerContext | 
