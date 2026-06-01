@@ -7,7 +7,6 @@
 #pragma once
 #include "IQosApi.h"
 #include "Utils/ServicesTestUtils.h"
-#include "OpenAPITicketsApiOperations.h"
 
 #if WITH_AUTOMATION_TESTS
 

@@ -3,8 +3,12 @@
 #include "CoreMinimal.h"
 #include "Models/RSQosServer.h"
 #include "QosResponsePacket.h"
+#include "HAL/Runnable.h"
 
 DECLARE_DELEGATE_ThreeParams(FOnQosComplete, const FRSQosServer& /*Server*/, uint64 /*Average Latency Ms*/, int /*Packets Lost*/);
+
+class FInternetAddr;
+class FSocket;
 
 namespace RocketScienceQos 
 {	
