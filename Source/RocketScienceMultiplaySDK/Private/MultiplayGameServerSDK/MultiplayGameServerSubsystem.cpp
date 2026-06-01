@@ -287,9 +287,9 @@ void URSMultiplayGameServerSubsystem::OnUnreadyServer(const RocketScienceMultipl
 			MultiplayErrorResponseBodyStruct.Detail = TEXT("HttpResponse is NULL");
 			MultiplayErrorResponseBodyStruct.Title = TEXT("Parsing failed error");
 
-			UE_LOG(LogRSMultiplayGameServerSDK, Error, TEXT("OnReadyServer() was unsuccessful, response status code is '%d' message '%s'"), MultiplayErrorResponseBodyStruct.Status, *MultiplayErrorResponseBodyStruct.Detail);
+			UE_LOG(LogRSMultiplayGameServerSDK, Error, TEXT("OnUnreadyServer() was unsuccessful, response status code is '%d' message '%s'"), MultiplayErrorResponseBodyStruct.Status, *MultiplayErrorResponseBodyStruct.Detail);
 
-			OnReadyServerFailure.ExecuteIfBound(MultiplayErrorResponseBodyStruct);
+			OnUnreadyServerFailure.ExecuteIfBound(MultiplayErrorResponseBodyStruct);
 
 			return;
 		}
