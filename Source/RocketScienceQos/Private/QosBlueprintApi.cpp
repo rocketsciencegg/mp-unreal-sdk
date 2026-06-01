@@ -8,7 +8,7 @@
 #include "RSQosSubsystem.h"
 #include "RSQosModule.h"
 #include "Utils/ServicesUtils.h"
-
+#include "Engine/GameInstance.h"
 
 void URSQosBlueprintApi::GetSortedQosResultsAsync(FString FleetId, TArray<FString> Regions, FRSGetSortedQosResultsResponseDelegate ResponseHandler, const UObject* WorldContextObject)
 {

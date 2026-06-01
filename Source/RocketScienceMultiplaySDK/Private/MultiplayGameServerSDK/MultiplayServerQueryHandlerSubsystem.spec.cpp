@@ -7,6 +7,7 @@
 #include "Tests/AutomationCommon.h"
 #include "Utils/AutomationTestUtils.h"
 #include "RSMultiplayServerQueryHandlerSubsystem.h"
+#include "Engine/GameInstance.h"
 
 #if WITH_AUTOMATION_TESTS
 BEGIN_DEFINE_SPEC(FRSMultiplayServerQueryHandlerSubsystemSpec, "MultiplayGameServerSDK.URSMultiplayServerQueryHandlerSubsystem",

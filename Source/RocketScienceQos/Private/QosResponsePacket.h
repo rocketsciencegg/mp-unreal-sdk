@@ -1,6 +1,8 @@
 #pragma once
 
-namespace RocketScienceQos 
+#include "CoreMinimal.h"
+
+namespace RocketScienceQos
 {	
 	class FQosResponsePacket
 	{

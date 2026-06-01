@@ -6,6 +6,7 @@
 
 #include "MultiplayServerQueryProtocol.h"
 #include "MultiplayGameServerSDKLog.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 namespace RocketScienceMultiplaySDK
 {

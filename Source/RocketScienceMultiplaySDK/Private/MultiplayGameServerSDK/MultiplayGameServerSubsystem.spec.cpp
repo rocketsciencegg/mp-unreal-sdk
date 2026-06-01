@@ -8,6 +8,7 @@
 #include "Utils/AutomationTestUtils.h"
 #include "Engine/World.h"
 #include "RSMultiplayGameServerSubsystem.h"
+#include "Engine/GameInstance.h"
 
 #if WITH_AUTOMATION_TESTS
 BEGIN_DEFINE_SPEC(FRSMultiplayGameServerSubsystemSpec, "MultiplayGameServerSDK.URSMultiplayGameServerSubsystem",

@@ -11,6 +11,7 @@
 #include "MultiplayServerQueryProtocol.h"
 #include "RSMultiplayServerConfigSubsystem.h"
 #include "MultiplayGameServerSDKLog.h"
+#include "Misc/CommandLine.h"
 
 void URSMultiplayServerQueryHandlerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
